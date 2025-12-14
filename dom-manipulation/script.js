@@ -134,13 +134,16 @@ function importFromJsonFile(event) {
 
 function populateCategories() {
     const categoryFilter = document.getElementById('categoryFilter');
-    const seenCategories = new Set(); //Use a Set to avoid duplicates
 
-    //Clear existing options (keep the first "All Categories" option)
-    //This loop removes all children except the first one
-    while (categoryFilter.children.length > 1) {
-        categoryFilter.removeChild(categoryFilter.lastChild);
-    }
+    //Wipe the dropdwon clean
+    //This removes the dependency on your HTML file being perfect
+    categoryFilter.innerHTML = '';
+
+    //Manually create and add the 'All Categories' option
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'All Categories';
+    categoryFilter.appendChild(allOption);
 
     //Using .map() to extract categories
     const categories = quotes.map(quote => quote.category);
@@ -171,7 +174,7 @@ function filterQuotes() {
 //Function to mock posting data to a server
 async function postQuoteToServer(quote) {
     try {
-        const response = await fetch('https://jsonplaceholder.typicode.com', {
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -191,8 +194,55 @@ async function fetchQuotesFromServer() {
         const response = await fetch('https://jsonplaceholder.typicode.com/posts');
         const serverData = await response.json();
 
-        //Logging to simulate getting data
-        console.log('Quotes fetched from server:', serverData);
+        //SIMULATION: Pretend server has a conflict
+        //Manually create a quote that exists locally but has a different category on server
+        const serverQuotes = [
+            { text: "Life is what happens when you're busy making other plans.", category: "ServerChangedCategory" }, // Conflict!
+            { text: "New server quote example.", category: "Tech" } // New Data}
+        ]
+
+        let updatesMade = false;
+
+        for (const serverQuote of serverQuotes) {
+            const localQuoteIndex = quotes.findIndex(q => q.text === serverQuote.text);
+
+            if (localQuoteIndex !== -1) {
+                //Quote exists. Check for attribute conflict
+                if (quotes[localQuoteIndex].category !== serverQuote.category) {
+
+                    //CONFLICT DETECTED
+                    //Ask user for manual resolution
+                    const userWantsServerData = confirm(
+                        `Conflict detected for quote: "${serverQuote.text}"\n\n` +
+                        `Local Category: ${quotes[localQuoteIndex].category}\n` +
+                        `Server Category: ${serverQuote.category}\n\n` +
+                        `Conflict OK to overwrite local data with Server data.\n` +
+                        `Click Cancel to keep local data.`
+                    );
+
+                    if (userWantsServerData) {
+                        quotes[localQuoteIndex].category = serverQuote.category;
+                        updatesMade = true;
+                        showNotification("QUote updated from server.", "success");
+                    } else {
+                        //User chose to keep local data
+                        showNotification("Kept local version.", "warning");
+                        //Optional: You might want push your local version back to server here
+                    }
+                }
+            } else {
+                //No conflict, just new data
+                quotes.push(serverQuote);
+                updatesMade = true;
+                showNotification("New quote added from server!", "success");
+            }
+        }
+            if (updatesMade) {
+                saveQuotes();
+                populateCategories();
+                filterQuotes(); // Refresh view
+            }
+        
     } catch(error) {
         console.error('Error fetching quotes:', error);
     }
@@ -209,6 +259,24 @@ if (lastSelectedCategory) {
 
 //Show the intitial quote
 showRandomQuote();
+
+//Create the notification container on load
+const notificationContainer = document.createElement('div')
+notificationContainer.id = 'notification-area';
+document.body.appendChild(notificationContainer);
+
+function showNotification(message, type = 'info') {
+    const notif = document.createElement('div');
+    notif.className = `notification ${type}`;
+    notif.textContent = message;
+
+    notificationContainer.appendChild(notif);
+
+    //Remove notification after 3s
+    setTimeout(() => {
+        notif.remove();
+    }, 3000)
+}
 
 //Event listener for the "Show New Quote" button
 document.getElementById('newQuote').addEventListener('click', showRandomQuote);

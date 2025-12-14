@@ -1,0 +1,29 @@
+#notification-area {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.notification {
+    background-color: #333;
+    color: #fff;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    opacity: 0.9;
+}
+
+.notification.success { border-left: 5px solid #28a745; }
+.notification.warning { border-left: 5px solid #ffc107; color: #fff; }
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 20px; opacity: 0.9;}
+}
+@keyframes fadeout {
+    from {bottom: 20px; opacity: 0.9;}
+    to {bottom: 0; opacity: 0;}
+}

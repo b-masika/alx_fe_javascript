@@ -85,12 +85,10 @@ function addQuote() {
     //Validate inputs
     if (newQuoteText && newQuoteCategory) {
         //Add the new quote object to the quotes array
-        quotes.push({ text: newQuoteText, category: newQuoteCategory });
+        const newQuote = { text: newQuoteText, category: newQuoteCategory };
 
-        //Save to local storage
+        quotes.push(newQuote);
         saveQuotes();
-
-        //Update the Categories Dropdown (Real-time UI Update)
         populateCategories();
 
         //update the DOM: Clear the input fields after adding
@@ -98,6 +96,9 @@ function addQuote() {
         document.getElementById('newQuoteCategory').value = '';
 
         alert("Quote added successfully!");
+
+        //Call Server Sync
+        postQuoteToServer(newQuote);
     } else {
         alert("Please enter both a quote and a category.");
     }
@@ -166,6 +167,37 @@ function filterQuotes() {
     //Refresh the dispalyed quote
     showRandomQuote();
 }
+
+//Function to mock posting data to a server
+async function postQuoteToServer(quote) {
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quote)
+        });
+        const result = await response.json();
+        console.log('Quote synced with server:', result);
+    } catch (error) {
+        console.error('Error posting quote:', error);
+    }
+}
+
+//Function to fetch quotes from the server
+async function fetchQuotesFromServer() {
+    try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+        const serverData = await response.json();
+
+        //Logging to simulate getting data
+        console.log('Quotes fetched from server:', serverData);
+    } catch(error) {
+        console.error('Error fetching quotes:', error);
+    }
+}
+
 //Initialize the app
 populateCategories();
 
@@ -183,3 +215,6 @@ document.getElementById('newQuote').addEventListener('click', showRandomQuote);
 
 //Initial the form (Call the function to display the form inputs)
 createAddQuoteForm();
+
+//Periodically fetch quotes from the server (every 10 seconds)
+setInterval(fetchQuotesFromServer, 10000);

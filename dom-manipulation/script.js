@@ -189,7 +189,7 @@ async function postQuoteToServer(quote) {
 }
 
 //Function to fetch quotes from the server
-async function fetchQuotesFromServer() {
+async function syncQuotes() {
     try {
         const response = await fetch('https://jsonplaceholder.typicode.com/posts');
         const serverData = await response.json();
@@ -285,4 +285,4 @@ document.getElementById('newQuote').addEventListener('click', showRandomQuote);
 createAddQuoteForm();
 
 //Periodically fetch quotes from the server (every 10 seconds)
-setInterval(fetchQuotesFromServer, 10000);
+setInterval(syncQuotes, 10000);

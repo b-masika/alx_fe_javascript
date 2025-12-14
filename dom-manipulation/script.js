@@ -141,15 +141,20 @@ function populateCategories() {
         categoryFilter.removeChild(categoryFilter.lastChild);
     }
 
-    quotes.forEach(quote => {
-        if (!seenCategories.has(quote.category)) {
-            seenCategories.add(quote.Category);
-            const option = document.createElement('option');
-            option.value = quote.category;
-            option.textContent = quote.category;
-            categoryFilter.appendChild(option);
-        }
+    //Using .map() to extract categories
+    const categories = quotes.map(quote => quote.category);
+
+    //Use a Set to get only unique values from the mapped array
+    const uniqueCategories = [...new Set(categories)];
+
+    //Populate the dropdwon with the unique categories
+    uniqueCategories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        categoryFilter.appendChild(option);
     });
+
 }
 
 function filterQuotes() {

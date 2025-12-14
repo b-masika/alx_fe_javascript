@@ -16,11 +16,22 @@ if (localStorage.getItem('quotes')) {
 // Function to display a random quote
 function showRandomQuote() {
     const quoteDisplay = document.getElementById('quoteDisplay');
-    const randomIndex = Math.floor(Math.random() * quotes.length);
-    const randomQuote = quotes[randomIndex];
+    const selectedCategory = document.getElementById('categoryFilter').value;
 
-    //Store the last viewed quote in session storage
-    sessionStorage.setItem('lastViewedQuote', JSON.stringify(randomQuote));
+    //Filter the array based on the dropdown selection
+    const filteredQuotes = selectedCategory === 'all'
+        ? quotes
+        : quotes.filter(quote => quote.category === selectedCategory)
+
+    //Handle cases where no qoutes exist for a category
+    if (filteredQuotes.length === 0) {
+        quoteDisplay.innerHTML = '<p>No quotes available for this category.</p>';
+        return;
+    }
+
+    //Pock a random quote from the FILTERED list
+    const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+    const randomQuote = filteredQuotes[randomIndex];
 
     //Clear previous content
     quoteDisplay.innerHTML = '';
@@ -74,10 +85,13 @@ function addQuote() {
     //Validate inputs
     if (newQuoteText && newQuoteCategory) {
         //Add the new quote object to the quotes array
-        quotes.push({text: newQuoteText, category: newQuoteCategory });
+        quotes.push({ text: newQuoteText, category: newQuoteCategory });
 
         //Save to local storage
-        localStorage.setItem('quotes', JSON.stringify(quotes));
+        saveQuotes();
+
+        //Update the Categories Dropdown (Real-time UI Update)
+        populateCategories();
 
         //update the DOM: Clear the input fields after adding
         document.getElementById('newQuoteText').value = '';
@@ -116,6 +130,48 @@ function importFromJsonFile(event) {
     };
     fileReader.readAsText(event.target.files[0]);
 }
+
+function populateCategories() {
+    const categoryFilter = document.getElementById('categoryFilter');
+    const seenCategories = new Set(); //Use a Set to avoid duplicates
+
+    //Clear existing options (keep the first "All Categories" option)
+    //This loop removes all children except the first one
+    while (categoryFilter.children.length > 1) {
+        categoryFilter.removeChild(categoryFilter.lastChild);
+    }
+
+    quotes.forEach(quote => {
+        if (!seenCategories.has(quote.category)) {
+            seenCategories.add(quote.Category);
+            const option = document.createElement('option');
+            option.value = quote.category;
+            option.textContent = quote.category;
+            categoryFilter.appendChild(option);
+        }
+    });
+}
+
+function filterQuotes() {
+    const selectedCategory = document.getElementById('categoryFilter').value;
+
+    //save the user's preference to local storage
+    localStorage.setItem('lastSelectedCategory', selectedCategory);
+
+    //Refresh the dispalyed quote
+    showRandomQuote();
+}
+//Initialize the app
+populateCategories();
+
+//Restore the last selected filter from local storage
+const lastSelectedCategory = localStorage.getItem('lastSelectedCategory');
+if (lastSelectedCategory) {
+    document.getElementById('categoryFilter').value = lastSelectedCategory;
+}
+
+//Show the intitial quote
+showRandomQuote();
 
 //Event listener for the "Show New Quote" button
 document.getElementById('newQuote').addEventListener('click', showRandomQuote);

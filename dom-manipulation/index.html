@@ -13,7 +13,12 @@
   <div>
     <button onclick="exportToJsonFile()">Export Quotes</button>
     <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
+
+    <select id="categoryFilter" onchange="filterQuotes()">
+        <option value="all">All Categories</option>
+    </select>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
